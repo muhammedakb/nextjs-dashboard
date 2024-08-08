@@ -4,6 +4,7 @@ import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
+import { InvoiceForm } from './definitions';
 
 export type State = {
   errors?: {
@@ -66,20 +67,44 @@ export async function createInvoice(prevState: State, formData: FormData) {
 
 const UpdateInvoice = FormSchema.omit({ id: true, date: true });
 
-export async function updateInvoice(id: string, formData: FormData) {
-  const { customerId, amount, status } = UpdateInvoice.parse({
+export async function updateInvoice(
+  invoice: InvoiceForm,
+  prevState: State,
+  formData: FormData
+) {
+  // const formValues = Object.fromEntries(formData.entries());
+  // console.log('formValues', formValues);
+  // console.log('invoice', invoice);
+  // const isChanged = Object.keys(formValues).some(
+  //   (key) => formValues[key] !== (invoice as any)[key]
+  // );
+
+  // if (!isChanged) {
+  //   throw new Error('Herhangi bir değer değiştirmediniz!');
+  // }
+
+  const validatedFields = UpdateInvoice.safeParse({
     customerId: formData.get('customerId'),
     amount: formData.get('amount'),
     status: formData.get('status'),
   });
 
+  // If form validation fails, return errors early. Otherwise, continue.
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: 'Missing Fields. Failed to Update Invoice.',
+    };
+  }
+
+  const { customerId, amount, status } = validatedFields.data;
   const amountInCents = amount * 100;
 
   try {
     await sql`
         UPDATE invoices
         SET customer_id = ${customerId}, amount = ${amountInCents}, status = ${status}
-        WHERE id = ${id}
+        WHERE id = ${invoice.id}
       `;
   } catch (error) {
     return { message: 'Database Error: Failed to Update Invoice.' };
