@@ -72,6 +72,7 @@ export async function updateInvoice(
   prevState: State,
   formData: FormData
 ) {
+  // TODO: initial values changes control will be added
   // const formValues = Object.fromEntries(formData.entries());
   // console.log('formValues', formValues);
   // console.log('invoice', invoice);
