@@ -4,9 +4,27 @@ import { fetchCustomers, fetchInvoiceById } from '@/app/lib/data';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  title: 'Edit Invoice',
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
+  const id = params.id;
+  const [invoice, customers] = await Promise.all([
+    fetchInvoiceById(id),
+    fetchCustomers(),
+  ]);
+
+  const customerName = customers.find(
+    (customer) => customer.id === invoice.customer_id
+  )?.name;
+
+  return {
+    title: {
+      absolute: `${!!customerName ? customerName + ' | ' : ''}Edit Invoice`,
+    },
+  };
+}
 
 export default async function Page({ params }: { params: { id: string } }) {
   const id = params.id;
