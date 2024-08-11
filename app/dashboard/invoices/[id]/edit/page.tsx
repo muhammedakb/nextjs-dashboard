@@ -21,6 +21,7 @@ export async function generateMetadata({
 
   return {
     title: {
+      // INFO: absolute olmasının sebebi layout.tsx'teki verdiğimiz title'ı ezmek.
       absolute: `${!!customerName ? customerName + ' | ' : ''}Edit Invoice`,
     },
   };
